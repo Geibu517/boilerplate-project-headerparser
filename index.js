@@ -1,30 +1,37 @@
 // index.js
-// where your node app starts
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
 
-// init project
-require('dotenv').config();
-var express = require('express');
-var app = express();
-
-// enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-// so that your API is remotely testable by FCC
-var cors = require('cors');
-app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
-
-// http://expressjs.com/en/starter/static-files.html
+const app = express();
+app.use(cors({ optionsSuccessStatus: 200 }));
 app.use(express.static('public'));
 
-// http://expressjs.com/en/starter/basic-routing.html
-app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/views/index.html');
+// optional index/landing page (if you have a views/index.html)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
-// your first API endpoint...
-app.get('/api/hello', function (req, res) {
-  res.json({ greeting: 'hello API' });
+// WHOAMI endpoint
+app.get('/api/whoami', (req, res) => {
+  // For proxied environments (Replit/Glitch/Heroku) use x-forwarded-for
+  const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip || '')
+              .split(',')[0].trim();
+
+  // Accept-Language header; return the first preference
+  const language = (req.headers['accept-language'] || '').split(',')[0].trim();
+
+  // User-Agent header (software)
+  const software = req.headers['user-agent'] || '';
+
+  res.json({
+    ipaddress: ip,
+    language: language,
+    software: software
+  });
 });
 
-// listen for requests :)
-var listener = app.listen(process.env.PORT || 3000, function () {
+// listen
+const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port);
 });
